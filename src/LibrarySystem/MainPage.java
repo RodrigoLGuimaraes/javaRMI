@@ -8,6 +8,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+
 /**
  * Created by rodrigoguimaraes on 2016-09-27.
  */
@@ -49,6 +52,7 @@ public class MainPage {
         String[] columnNames = {"Livro",
                 "Renovações",
                 "Devolução"};
+        /*
         Object[][] data = {
                 {"Livro 1", new Integer(0),
                         "21/10/2016"},
@@ -57,7 +61,17 @@ public class MainPage {
                 {"Livro 3", new Integer(2),
                         "22/10/2016"}
         };
+        */
 
+        Object[][] data = null;
+        try {
+            Registry registry = LocateRegistry.getRegistry();
+            LibraryServerInterface stub = (LibraryServerInterface) registry.lookup("LibraryServer");
+            data = stub.getClientBooks(0);
+        } catch (Exception e) {
+            System.err.println("Client exception: " + e.toString());
+            e.printStackTrace();
+        }
 
         DefaultTableModel tblModel = new DefaultTableModel(data, columnNames);
         meusLivrosTbl.setModel(tblModel);
