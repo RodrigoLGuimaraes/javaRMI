@@ -2,88 +2,123 @@
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="LibrarySystem.MainPage">
   <grid id="27dc6" binding="mainForm" layout-manager="GridBagLayout">
     <constraints>
-      <xy x="20" y="20" width="500" height="400"/>
+      <xy x="20" y="20" width="605" height="456"/>
     </constraints>
     <properties/>
     <border type="none"/>
     <children>
-      <component id="abdea" class="javax.swing.JTextArea" binding="textArea1" default-binding="true">
+      <grid id="1c8ee" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+        <margin top="0" left="0" bottom="0" right="0"/>
         <constraints>
-          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
-            <preferred-size width="50" height="50"/>
-          </grid>
-          <gridbag weightx="1.0" weighty="0.0"/>
-        </constraints>
-        <properties>
-          <wrapStyleWord value="false"/>
-        </properties>
-      </component>
-      <component id="69ac0" class="javax.swing.JButton" binding="searchBtn">
-        <constraints>
-          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="0.0" weighty="0.0"/>
-        </constraints>
-        <properties>
-          <text value="Buscar no catálogo de livros"/>
-        </properties>
-      </component>
-      <component id="7190" class="javax.swing.JList" binding="resultList">
-        <constraints>
-          <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="2" anchor="0" fill="3" indent="0" use-parent-layout="false">
-            <preferred-size width="150" height="50"/>
-          </grid>
-          <gridbag weightx="0.0" weighty="0.0"/>
-        </constraints>
-        <properties>
-          <background color="-7433064"/>
-          <model>
-            <item value="Sem resultados"/>
-          </model>
-        </properties>
-      </component>
-      <component id="1077a" class="javax.swing.JLabel" binding="meusLivros">
-        <constraints>
-          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="0.0" weighty="0.0"/>
-        </constraints>
-        <properties>
-          <text value="Meus Livros"/>
-        </properties>
-      </component>
-      <component id="73459" class="javax.swing.JLabel" binding="searchLabel">
-        <constraints>
-          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="0.0" weighty="0.0"/>
-        </constraints>
-        <properties>
-          <text value="Buscar"/>
-        </properties>
-      </component>
-      <component id="6ad8f" class="javax.swing.JButton" binding="emprestaReservaBtn">
-        <constraints>
-          <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="0.0" weighty="0.0"/>
-        </constraints>
-        <properties>
-          <text value="Emprestar / Reservar"/>
-        </properties>
-      </component>
-      <scrollpane id="813a6" binding="meusLivrosScroll">
-        <constraints>
-          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="0.0" weighty="0.0"/>
+          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="1" hsize-policy="1" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="1.0" weighty="0.2"/>
         </constraints>
         <properties/>
         <border type="none"/>
         <children>
-          <component id="9ea0b" class="javax.swing.JTable" binding="meusLivrosTbl">
-            <constraints/>
+          <component id="6ad8f" class="javax.swing.JButton" binding="emprestaReservaBtn">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
             <properties>
-              <autoCreateRowSorter value="false"/>
+              <enabled value="false"/>
+              <text value="Emprestar / Reservar"/>
+            </properties>
+          </component>
+          <hspacer id="fa6f5">
+            <constraints>
+              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+          </hspacer>
+        </children>
+      </grid>
+      <grid id="75d04" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+        <margin top="0" left="0" bottom="0" right="0"/>
+        <constraints>
+          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="1.0" weighty="1.0"/>
+        </constraints>
+        <properties/>
+        <border type="line" title="Pesquisa de Livros"/>
+        <children>
+          <component id="c8c5c" class="javax.swing.JTextField" binding="bookSearchTF">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                <preferred-size width="150" height="-1"/>
+              </grid>
+            </constraints>
+            <properties/>
+          </component>
+          <component id="7190" class="javax.swing.JList" binding="resultList">
+            <constraints>
+              <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="6" hsize-policy="2" anchor="0" fill="3" indent="0" use-parent-layout="false">
+                <preferred-size width="150" height="50"/>
+              </grid>
+            </constraints>
+            <properties>
+              <background color="-7433064"/>
+              <model>
+                <item value="Sem resultados"/>
+              </model>
+            </properties>
+          </component>
+          <component id="69ac0" class="javax.swing.JButton" binding="searchBtn">
+            <constraints>
+              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="0" fill="1" indent="0" use-parent-layout="false">
+                <preferred-size width="100" height="33"/>
+                <maximum-size width="100" height="-1"/>
+              </grid>
+            </constraints>
+            <properties>
+              <text value="Busca"/>
             </properties>
           </component>
         </children>
-      </scrollpane>
+      </grid>
+      <grid id="eb0b4" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+        <margin top="0" left="0" bottom="0" right="0"/>
+        <constraints>
+          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="1" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
+            <preferred-size width="760" height="151"/>
+          </grid>
+          <gridbag weightx="1.0" weighty="0.5"/>
+        </constraints>
+        <properties/>
+        <border type="line" title="Meus Livros"/>
+        <children>
+          <component id="1077a" class="javax.swing.JLabel" binding="meusLivros">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false">
+                <preferred-size width="98" height="17"/>
+              </grid>
+            </constraints>
+            <properties>
+              <text value="Cliente:"/>
+            </properties>
+          </component>
+          <scrollpane id="813a6" binding="meusLivrosScroll">
+            <constraints>
+              <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="1" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties/>
+            <border type="none"/>
+            <children>
+              <component id="256c4" class="javax.swing.JList" binding="meusLivrosJL">
+                <constraints/>
+                <properties/>
+              </component>
+            </children>
+          </scrollpane>
+          <component id="5be26" class="javax.swing.JTextField" binding="clientTF">
+            <constraints>
+              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                <preferred-size width="150" height="-1"/>
+              </grid>
+            </constraints>
+            <properties/>
+          </component>
+        </children>
+      </grid>
     </children>
   </grid>
 </form>

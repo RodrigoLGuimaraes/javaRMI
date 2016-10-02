@@ -4,33 +4,66 @@ import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by rodrigoguimaraes on 2016-09-28.
  */
-public class LibraryServer implements LibraryServerInterface{
+public class LibraryServer extends UnicastRemoteObject implements LibraryServerInterface{
 
-    public Object[][] getClientBooks(int clientID)
-    {
-        //TODO: This is just a mockup
-        Object[][] data = {
-                {"Livro 1 SERVER", new Integer(0),
-                        "21/10/2016"},
-                {"Livro 2 SERVER", new Integer(1),
-                        "20/10/2016"},
-                {"Livro 3 SERVER", new Integer(2),
-                        "22/10/2016"}
-        };
-        return data;
+    private HashMap<ServerEvent, List<ClientCBHandler>> m_cbMap = new HashMap<>();
+    private List<Book> m_booksList = new ArrayList<>();
+
+    public LibraryServer() throws RemoteException {
+        super();
+
+        m_booksList.add(new Book("Teste1"));
+        m_booksList.add(new Book("Teste2"));
+        m_booksList.add(new Book("Teste3"));
+        m_booksList.add(new Book("Teste4"));
     }
-    public Object[][] getBooksOnCatalog(String query)
+
+    public List<Book> getClientBooks(String client)
     {
-        return null;
+        List<Book> clientBooks = new ArrayList<>();
+        for(Book book : m_booksList) {
+            if(book.getOwner() == null) continue;
+
+            if(book.getOwner().equals(client)) {
+                clientBooks.add(book);
+            }
+        }
+        return clientBooks;
     }
-    public Boolean lendBook(int bookId)
-    {
+
+    public List<Book> getBooksByName(String name){
+        List<Book> booksFound = new ArrayList<>();
+        for(Book book : m_booksList) {
+            if(book.getName().trim().toLowerCase().contains(name.toLowerCase())) {
+                booksFound.add(book);
+            }
+        }
+
+        return booksFound;
+    }
+
+    public Boolean lendBook(String client, String bookName) {
+        //TODO(Hudo): Check the pre-requisites for the client
+
+        for(Book book : m_booksList) {
+            if(book.getName().equals(bookName)) {
+                //TODO(Hudo): Check the pre-requisites for the book
+
+                book.setOwner(client);
+                return true;
+            }
+        }
+
         return false;
     }
+
     public Boolean giveBookBack(int bookId)
     {
         return false;
@@ -40,14 +73,21 @@ public class LibraryServer implements LibraryServerInterface{
         return false;
     }
 
+    @Override
+    public void addClientCBHandler(ClientCBHandler handler, ServerEvent event) {
+        if(m_cbMap.containsKey(event)) {
+            m_cbMap.get(event).add(handler);
+        } else {
+            ArrayList<ClientCBHandler> list = new ArrayList<>();
+            list.add(handler);
+            m_cbMap.put(event, list);
+        }
+    }
+
     public static void main(String[] args) {
         try {
-            LibraryServer obj = new LibraryServer();
-            LibraryServerInterface stub = (LibraryServerInterface) UnicastRemoteObject.exportObject(obj, 0);
-
-            // Bind the remote object's stub in the registry
             Registry registry = LocateRegistry.createRegistry(1099);
-            registry.bind("LibraryServer", stub);
+            registry.rebind("LibraryServer", new LibraryServer());
 
             System.err.println("Server ready");
         } catch (Exception e) {
