@@ -12,8 +12,9 @@ public interface LibraryServerInterface extends Remote {
     List<Book> getClientBooks(String client) throws RemoteException;
     List<Book> getBooksByName(String name) throws RemoteException;
     Boolean lendBook(String client, String bookName) throws RemoteException;
-    Boolean giveBookBack(int bookId) throws RemoteException;
-    Boolean bookReservation(int bookId) throws RemoteException;
+    Boolean returnBook(String bookName) throws RemoteException;
 
-    void addClientCBHandler(ClientCBHandler handler, ServerEvent event) throws RemoteException;
+    void addReservationBook(String bookName, ClientCBHandler clientCBHandler) throws RemoteException;
+    void removeReservationBook(String bookName, ClientCBHandler clientCBHandler) throws RemoteException;
+    void renovateBook(String bookName);
 }

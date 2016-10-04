@@ -4,9 +4,7 @@ import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by rodrigoguimaraes on 2016-09-28.
@@ -15,6 +13,34 @@ public class LibraryServer extends UnicastRemoteObject implements LibraryServerI
 
     private HashMap<ServerEvent, List<ClientCBHandler>> m_cbMap = new HashMap<>();
     private List<Book> m_booksList = new ArrayList<>();
+    private List<Client> mClientList = new ArrayList<>();
+
+    private Client getClient(String clientName)
+    {
+        for(Client c : mClientList)
+        {
+            if(c.getName().equals(clientName))
+            {
+                return c;
+            }
+        }
+
+        Client c = new Client(clientName);
+        mClientList.add(c);
+        return c;
+    }
+
+    private Book getBook(String bookName)
+    {
+        for(Book bk : m_booksList)
+        {
+            if(bk.getName().equals(bookName))
+            {
+                return bk;
+            }
+        }
+        return null;
+    }
 
     public LibraryServer() throws RemoteException {
         super();
@@ -27,15 +53,7 @@ public class LibraryServer extends UnicastRemoteObject implements LibraryServerI
 
     public List<Book> getClientBooks(String client)
     {
-        List<Book> clientBooks = new ArrayList<>();
-        for(Book book : m_booksList) {
-            if(book.getOwner() == null) continue;
-
-            if(book.getOwner().equals(client)) {
-                clientBooks.add(book);
-            }
-        }
-        return clientBooks;
+        return getClient(client).getBookList();
     }
 
     public List<Book> getBooksByName(String name){
@@ -50,13 +68,45 @@ public class LibraryServer extends UnicastRemoteObject implements LibraryServerI
     }
 
     public Boolean lendBook(String client, String bookName) {
-        //TODO(Hudo): Check the pre-requisites for the client
+        Client c = getClient(client);
+        //Check the pre-requisites for the client
+        List<Book> clientBookList = c.getBookList();
+        if(clientBookList.size() >= 3)
+        {
+            return false;
+        }
+        for(Book b : clientBookList)
+        {
+            if(b.getReturnDate().getTime() < (new Date()).getTime())
+            {
+                return false;
+            }
+        }
 
         for(Book book : m_booksList) {
             if(book.getName().equals(bookName)) {
-                //TODO(Hudo): Check the pre-requisites for the book
+                //Check the pre-requisites for the book
+                if(book.getOwner() != null)
+                {
+                    return false;
+                }
+
+                if(!book.getReservationList().isEmpty())
+                {
+                    if(book.getReservationList().get(0) != c)
+                    {
+                        return false;
+                    }
+
+                    book.removeReservation(c);
+                }
+
 
                 book.setOwner(client);
+
+                book.setReturnDate((addDaysToDate(new Date(), 7)));
+
+                c.addBook(book);
                 return true;
             }
         }
@@ -64,24 +114,82 @@ public class LibraryServer extends UnicastRemoteObject implements LibraryServerI
         return false;
     }
 
-    public Boolean giveBookBack(int bookId)
+    public Boolean returnBook(String bookName)
     {
-        return false;
-    }
-    public Boolean bookReservation(int bookId)
-    {
-        return false;
+        Book book = getBook(bookName);
+        if(book.getOwner() == null) return false;
+
+        Client client = getClient(book.getOwner());
+
+        if(book.getReturnDate().getTime() < new Date().getTime()) {
+            client.setPenaltyValidationDate((addDaysToDate(new Date(), 7)));
+        }
+
+        book.setOwner(null);
+        if(!book.getReservationList().isEmpty()) {
+            book.setReservationExpiryDate(addDaysToDate(new Date(), 5));
+            try {
+                book.getReservationList().get(0).callback(book);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+
+            book.scheduleReservation();
+
+        }
+
+
+
+        return true;
     }
 
     @Override
-    public void addClientCBHandler(ClientCBHandler handler, ServerEvent event) {
-        if(m_cbMap.containsKey(event)) {
-            m_cbMap.get(event).add(handler);
-        } else {
-            ArrayList<ClientCBHandler> list = new ArrayList<>();
-            list.add(handler);
-            m_cbMap.put(event, list);
+    public void addReservationBook(String bookName, ClientCBHandler handler) {
+        for(Book book : m_booksList) {
+            if(book.getName().equals(bookName)) {
+                book.getReservationList().add(handler);
+                return;
+            }
         }
+    }
+
+    public void removeReservationBook(String bookName, ClientCBHandler handler) {
+        for(Book book : m_booksList) {
+            if(book.getName().equals(bookName)) {
+                book.getReservationList().remove(handler);
+                return;
+            }
+        }
+    }
+
+    public void renovateBook(String bookName)
+    {
+        Book book = getBook(bookName);
+        if(book.getOwner() == null) return;
+
+        Client client = getClient(book.getOwner());
+        if(client.getPenaltyValidationDate() != null
+                && client.getPenaltyValidationDate().getTime() > new Date().getTime()) {
+            return;
+        }
+
+        for(Book b : getClient(book.getOwner()).getBookList()) {
+            if(book.getReturnDate().getTime() < (new Date()).getTime()) {
+                return;
+            }
+        }
+
+        if(book.getReservationList().isEmpty())
+        {
+            book.setReturnDate(addDaysToDate(new Date(), 7));
+        }
+    }
+
+    private Date addDaysToDate(Date date, int days) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.add(Calendar.DATE, days);
+        return cal.getTime();
     }
 
     public static void main(String[] args) {
