@@ -9,12 +9,16 @@ import java.awt.event.ActionListener;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.rmi.server.ExportException;
+import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
  * Created by rodrigoguimaraes on 2016-09-27.
  */
-public class MainPage {
+public class MainPage extends UnicastRemoteObject implements ClientCBHandler{
     private JButton searchBtn;
     private JPanel mainForm;
     private JList resultList;
@@ -24,10 +28,12 @@ public class MainPage {
     private JTextField bookSearchTF;
     private JList meusLivrosJL;
     private JTextField clientTF;
+    private JButton mDevolverButton;
+    private JButton mRenovarLivroButton;
 
     private LibraryServerInterface m_libraryStub;
 
-    public MainPage() {
+    public MainPage() throws RemoteException {
 
         try {
             Registry registry = LocateRegistry.getRegistry();
@@ -50,6 +56,8 @@ public class MainPage {
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 }
+
+                clientTF.setEnabled(false);
             }
         });
 
@@ -66,13 +74,6 @@ public class MainPage {
                 } catch (RemoteException e1) {
                     e1.printStackTrace();
                 }
-            }
-        });
-
-        emprestaReservaBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-
             }
         });
         resultList.addListSelectionListener(new ListSelectionListener() {
@@ -95,20 +96,104 @@ public class MainPage {
             public void actionPerformed(ActionEvent e) {
                 Book book = (Book) resultList.getSelectedValue();
                 try {
-                    m_libraryStub.lendBook(clientTF.getText(), book.getName());
+                    if(book.getOwner() == null)
+                    {
+                        if( ! m_libraryStub.lendBook(clientTF.getText(), book.getName()))
+                        {
+                            JOptionPane.showMessageDialog(null, clientTF.getText()+", voce nao pode emprestar o livro " + book.getName());
+                        }
+                    }
+                    else
+                    {
+                        if( m_libraryStub.addReservationBook(book.getName(), MainPage.this) )
+                        {
+                            JOptionPane.showMessageDialog(null, clientTF.getText()+", voce esta agora na lista de reserva do livro " + book.getName());
+                        }
+                        else
+                        {
+                            JOptionPane.showMessageDialog(null, clientTF.getText()+", impossivel reservar o livro " + book.getName());
+                        }
+                    }
+                    clientTF.postActionEvent();
                 } catch (RemoteException e1) {
                     e1.printStackTrace();
                 }
             }
         });
+        meusLivrosJL.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                if (e.getValueIsAdjusting() == false) {
+
+                    if (meusLivrosJL.getSelectedIndex() == -1) {
+                        //No selection, disable fire button.
+                        mDevolverButton.setEnabled(false);
+                        mRenovarLivroButton.setEnabled(false);
+                    } else {
+                        //Selection, enable the fire button.
+                        mDevolverButton.setEnabled(true);
+                        mRenovarLivroButton.setEnabled(true);
+                    }
+                }
+            }
+        });
+        mDevolverButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Book book = (Book) meusLivrosJL.getSelectedValue();
+                try {
+                    m_libraryStub.returnBook(book.getName());
+                    clientTF.postActionEvent();
+                } catch (RemoteException e1) {
+                    e1.printStackTrace();
+                }
+
+
+            }
+        });
+        mRenovarLivroButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                try {
+                    String bookName = ((Book) meusLivrosJL.getSelectedValue()).getName();
+                    if(! m_libraryStub.renovateBook(bookName) )
+                    {
+                        JOptionPane.showMessageDialog(null, clientTF.getText()+", voce nao pode renovar o livro " + bookName);
+                    }
+                } catch (RemoteException e1) {
+                    e1.printStackTrace();
+                }
+
+                clientTF.postActionEvent();
+            }
+        });
+    }
+
+    public void callback(String bookName)
+    {
+        System.out.println(clientTF.getText() + ", voce ja pode emprestar o livro " + bookName);
+        JOptionPane.showMessageDialog(null, clientTF.getText() + ", voce ja pode emprestar o livro " + bookName);
+    }
+
+    public String getName()
+    {
+        return clientTF.getText();
     }
 
     public static void main(String[] args) {
         JFrame frame = new JFrame("Library System v0.2");
-        frame.setContentPane(new MainPage().mainForm);
+        try
+        {
+            frame.setContentPane(new MainPage().mainForm);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
-        frame.setSize(400, 400);
+        frame.setSize(450, 400);
         frame.setVisible(true);
     }
 

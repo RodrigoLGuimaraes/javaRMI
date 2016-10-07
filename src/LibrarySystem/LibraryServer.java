@@ -11,9 +11,27 @@ import java.util.*;
  */
 public class LibraryServer extends UnicastRemoteObject implements LibraryServerInterface{
 
-    private HashMap<ServerEvent, List<ClientCBHandler>> m_cbMap = new HashMap<>();
+    private HashMap<String, Timer> m_bookTimerMap = new HashMap<>();
     private List<Book> m_booksList = new ArrayList<>();
     private List<Client> mClientList = new ArrayList<>();
+
+    private class BookTimerTask extends TimerTask {
+
+        private Book mBook;
+
+        public BookTimerTask(Book book) {
+            super();
+            mBook = book;
+        }
+
+        @Override
+        public void run() {
+            if(!mBook.getReservationList().isEmpty()) {
+                mBook.getReservationList().remove(0);
+                mBook.notifyReservee();
+            }
+        }
+    };
 
     private Client getClient(String clientName)
     {
@@ -67,7 +85,7 @@ public class LibraryServer extends UnicastRemoteObject implements LibraryServerI
         return booksFound;
     }
 
-    public Boolean lendBook(String client, String bookName) {
+    public Boolean lendBook(String client, String bookName) throws RemoteException{
         Client c = getClient(client);
         //Check the pre-requisites for the client
         List<Book> clientBookList = c.getBookList();
@@ -93,12 +111,12 @@ public class LibraryServer extends UnicastRemoteObject implements LibraryServerI
 
                 if(!book.getReservationList().isEmpty())
                 {
-                    if(book.getReservationList().get(0) != c)
+                    if(!book.getReservationList().get(0).getName().equals(c.getName()))
                     {
                         return false;
                     }
-
-                    book.removeReservation(c);
+                    book.getReservationList().remove(0);
+                    m_bookTimerMap.get(book.getName()).cancel();
                 }
 
 
@@ -126,63 +144,65 @@ public class LibraryServer extends UnicastRemoteObject implements LibraryServerI
         }
 
         book.setOwner(null);
+        client.removeBook(book);
+
         if(!book.getReservationList().isEmpty()) {
             book.setReservationExpiryDate(addDaysToDate(new Date(), 5));
-            try {
-                book.getReservationList().get(0).callback(book);
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
+            book.notifyReservee();
 
-            book.scheduleReservation();
-
+            Timer timer = new Timer();
+            timer.schedule(new BookTimerTask(book), book.getReservationExpiryDate());
+            m_bookTimerMap.put(book.getName(), timer);
         }
-
-
 
         return true;
     }
 
     @Override
-    public void addReservationBook(String bookName, ClientCBHandler handler) {
-        for(Book book : m_booksList) {
+    public Boolean addReservationBook(String bookName, ClientCBHandler clientRef) throws RemoteException {
+        for(Book book : m_booksList)
+        {
             if(book.getName().equals(bookName)) {
-                book.getReservationList().add(handler);
-                return;
+                List<ClientCBHandler> reservationList = book.getReservationList();
+                for(ClientCBHandler clientCB : reservationList)
+                {
+                    String client = clientCB.getName();
+                    if(client.equals(clientRef.getName()))
+                    {
+                        return false;
+                    }
+                }
+                reservationList.add(clientRef);
+                return true;
             }
         }
+        return false;
     }
 
-    public void removeReservationBook(String bookName, ClientCBHandler handler) {
-        for(Book book : m_booksList) {
-            if(book.getName().equals(bookName)) {
-                book.getReservationList().remove(handler);
-                return;
-            }
-        }
-    }
-
-    public void renovateBook(String bookName)
+    public Boolean renovateBook(String bookName)
     {
         Book book = getBook(bookName);
-        if(book.getOwner() == null) return;
+        if(book.getOwner() == null) return false;
 
         Client client = getClient(book.getOwner());
         if(client.getPenaltyValidationDate() != null
                 && client.getPenaltyValidationDate().getTime() > new Date().getTime()) {
-            return;
+            return false;
         }
 
         for(Book b : getClient(book.getOwner()).getBookList()) {
             if(book.getReturnDate().getTime() < (new Date()).getTime()) {
-                return;
+                return false;
             }
         }
 
         if(book.getReservationList().isEmpty())
         {
             book.setReturnDate(addDaysToDate(new Date(), 7));
+            return true;
         }
+
+        return false;
     }
 
     private Date addDaysToDate(Date date, int days) {

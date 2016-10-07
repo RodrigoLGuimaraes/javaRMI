@@ -2,6 +2,8 @@ package LibrarySystem;
 
 import java.io.Serializable;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.util.*;
 
 /**
@@ -13,7 +15,6 @@ public class Book implements Serializable {
     private Date returnDate;
     private Date reservationExpiryDate;
     private List<ClientCBHandler> reservationList = new ArrayList<>();
-    private Timer reservationTimer;
 
     public Book(String name) {
         this.name = name;
@@ -59,43 +60,35 @@ public class Book implements Serializable {
         this.reservationExpiryDate = reservationExpiryDate;
     }
 
-    public Timer getReservationTimer() {
-        if(reservationTimer == null)
-        {
-            reservationTimer = new Timer();
-        }
-        return reservationTimer;
-    }
-
-    public void scheduleReservation() {
-        Timer timer = getReservationTimer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                if(!reservationList.isEmpty()) {
-                    reservationList.remove(0);
-                    try {
-                        reservationList.get(0).callback(Book.this);
-                    } catch (RemoteException e) {
-                        e.printStackTrace();
-                    }
-                }
+    public void notifyReservee() {
+        if(!reservationList.isEmpty()) {
+            try {
+                ClientCBHandler clientCB = reservationList.get(0);
+                clientCB.callback(name);
+            } catch (Exception e) {
+                System.err.println("Client exception: " + e.toString());
+                e.printStackTrace();
             }
-        }, reservationExpiryDate);
-    }
-
-    public void setReservationTimer(Timer reservationTimer) {
-        this.reservationTimer = reservationTimer;
+        }
     }
 
     @Override
-    public String toString() {
-        return name;
-    }
-
-    public void removeReservation(Client c)
+    public String toString()
     {
-        reservationList.remove(c);
+        if(owner != null)
+        {
+            return name + " - " + returnDate.toString();
+        }
+        else if(! reservationList.isEmpty())
+        {
+            try {
+                return name + " - Reserved to " + reservationList.get(0).getName() + " until " + reservationExpiryDate.toString();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+                return name + " - Reserved to ???" + " until " + reservationExpiryDate.toString();
+            }
+        }
+        return name;
     }
 }
 
