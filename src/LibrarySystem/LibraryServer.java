@@ -85,7 +85,7 @@ public class LibraryServer extends UnicastRemoteObject implements LibraryServerI
         return booksFound;
     }
 
-    public Boolean lendBook(String client, String bookName) throws RemoteException{
+    public synchronized Boolean lendBook(String client, String bookName) throws RemoteException{
         Client c = getClient(client);
         //Check the pre-requisites for the client
         List<Book> clientBookList = c.getBookList();
@@ -208,7 +208,8 @@ public class LibraryServer extends UnicastRemoteObject implements LibraryServerI
     private Date addDaysToDate(Date date, int days) {
         Calendar cal = Calendar.getInstance();
         cal.setTime(date);
-        cal.add(Calendar.DATE, days);
+//        cal.add(Calendar.DATE, days);
+        cal.add(Calendar.SECOND, days);
         return cal.getTime();
     }
 
