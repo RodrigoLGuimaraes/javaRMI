@@ -1,11 +1,11 @@
 package LibrarySystem;
 
-import java.io.Serializable;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
-/**
- * Created by hudo on 10/2/16.
+/***
+ * Interface remota do cliente. Possui os métodos de callback, usado para notificação de novo livro de interesse
+ * disponível, e a função getName, que retorna o nome do cliente.
  */
 public interface ClientCBHandler extends Remote{
     void callback(String bookName) throws RemoteException;

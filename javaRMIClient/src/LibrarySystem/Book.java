@@ -2,12 +2,13 @@ package LibrarySystem;
 
 import java.io.Serializable;
 import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
-/**
- * Created by hudo on 10/2/16.
+/***
+ * Essa classe representa um livro. Contém informações como o nome e a lista
+ * de pessoas na lista de reserva do livro.
  */
 public class Book implements Serializable {
     private String name;
@@ -60,6 +61,9 @@ public class Book implements Serializable {
         this.reservationExpiryDate = reservationExpiryDate;
     }
 
+    /***
+     * Notifica o primeiro item da lista de clientes interessados e invoca o callback.
+     */
     public void notifyReservee() {
         if(!reservationList.isEmpty()) {
             try {

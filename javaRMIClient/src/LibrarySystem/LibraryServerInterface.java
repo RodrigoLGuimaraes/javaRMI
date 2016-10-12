@@ -4,8 +4,9 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.List;
 
-/**
- * Created by rodrigoguimaraes on 2016-09-28.
+/***
+ * Interface remota do servidor. Possui os métodos de busca de livros, de empréstimo, devolução e de gerenciamento
+ * de reservas e renovações.
  */
 public interface LibraryServerInterface extends Remote {
 

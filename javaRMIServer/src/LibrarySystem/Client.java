@@ -1,13 +1,12 @@
 package LibrarySystem;
 
 import java.io.Serializable;
-import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-/**
- * Created by hudoassenco on 10/4/16.
+/***
+ * Classe cliente, contendo informações como o nome, se tem alguma penalidade e a lista de livros que possui no momento.
  */
 public class Client implements Serializable{
     private String name;

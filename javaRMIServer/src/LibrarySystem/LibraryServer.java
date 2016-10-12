@@ -1,20 +1,23 @@
 package LibrarySystem;
 
-import java.rmi.registry.Registry;
-import java.rmi.registry.LocateRegistry;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
 
 /**
- * Created by rodrigoguimaraes on 2016-09-28.
+ * Classe do servidor da biblioteca. Contém a lógica de funcionamento do sistema da biblioteca.
  */
-public class LibraryServer extends UnicastRemoteObject implements LibraryServerInterface{
+public class LibraryServer extends UnicastRemoteObject implements LibraryServerInterface {
 
     private HashMap<String, Timer> m_bookTimerMap = new HashMap<>();
     private List<Book> m_booksList = new ArrayList<>();
     private List<Client> mClientList = new ArrayList<>();
 
+    /**
+     * Task usada para dar sequência na lista de reservas em caso de estouro do tempo de reserva.
+     */
     private class BookTimerTask extends TimerTask {
 
         private Book mBook;
@@ -28,7 +31,16 @@ public class LibraryServer extends UnicastRemoteObject implements LibraryServerI
         public void run() {
             if(!mBook.getReservationList().isEmpty()) {
                 mBook.getReservationList().remove(0);
-                mBook.notifyReservee();
+
+                if(!mBook.getReservationList().isEmpty())
+                {
+                    mBook.setReservationExpiryDate(addDaysToDate(new Date(), 5));
+                    mBook.notifyReservee();
+
+                    Timer timer = new Timer();
+                    timer.schedule(new BookTimerTask(mBook), mBook.getReservationExpiryDate());
+                    m_bookTimerMap.put(mBook.getName(), timer);
+                }
             }
         }
     };
@@ -89,6 +101,14 @@ public class LibraryServer extends UnicastRemoteObject implements LibraryServerI
         Client c = getClient(client);
         //Check the pre-requisites for the client
         List<Book> clientBookList = c.getBookList();
+
+        if(c.getPenaltyValidationDate() != null)
+        {
+            if(c.getPenaltyValidationDate().getTime() > new Date().getTime()) {
+                return false;
+            }
+        }
+
         if(clientBookList.size() >= 3)
         {
             return false;
@@ -205,6 +225,12 @@ public class LibraryServer extends UnicastRemoteObject implements LibraryServerI
         return false;
     }
 
+    /***
+     * Adiciona um número de dias a data. Na implementação atual, está na verdade adicionando segundos.
+     * @param date - data na qual o tempo será adicionado
+     * @param days - número de dias a ser adicionado
+     * @return resultado da adição
+     */
     private Date addDaysToDate(Date date, int days) {
         Calendar cal = Calendar.getInstance();
         cal.setTime(date);
@@ -213,6 +239,10 @@ public class LibraryServer extends UnicastRemoteObject implements LibraryServerI
         return cal.getTime();
     }
 
+    /***
+     * Cria o registry e adiciona o LibraryServer a ele.
+     * @param args
+     */
     public static void main(String[] args) {
         try {
             Registry registry = LocateRegistry.createRegistry(1099);

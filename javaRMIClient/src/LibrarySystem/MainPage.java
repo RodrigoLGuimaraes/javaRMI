@@ -5,20 +5,16 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.rmi.server.ExportException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
-/**
- * Created by rodrigoguimaraes on 2016-09-27.
+/***
+ * Classe que implementa o funcionamento da UI do cliente.
  */
-public class MainPage extends UnicastRemoteObject implements ClientCBHandler{
+public class MainPage extends UnicastRemoteObject implements ClientCBHandler {
     private JButton searchBtn;
     private JPanel mainForm;
     private JList resultList;
@@ -33,6 +29,11 @@ public class MainPage extends UnicastRemoteObject implements ClientCBHandler{
 
     private LibraryServerInterface m_libraryStub;
 
+    /***
+     * Na construtora os listeners dos eventos da interface são criados. O tratamento dos eventos de clique nos botões
+     * invocam as funções de renovação, empréstimo, devolução, entre outras.
+     * @throws RemoteException
+     */
     public MainPage() throws RemoteException {
 
         try {
@@ -170,6 +171,10 @@ public class MainPage extends UnicastRemoteObject implements ClientCBHandler{
         });
     }
 
+    /***
+     * Função que avisa o cliente que um novo livro de interesse está reservado para ele no momento.
+     * @param bookName - livro que foi recentemente devolvido
+     */
     public void callback(String bookName)
     {
         System.out.println(clientTF.getText() + ", voce ja pode emprestar o livro " + bookName);
@@ -181,6 +186,10 @@ public class MainPage extends UnicastRemoteObject implements ClientCBHandler{
         return clientTF.getText();
     }
 
+    /***
+     * Cria o frame da UI e configura alguns de seus parâmetros.
+     * @param args
+     */
     public static void main(String[] args) {
         JFrame frame = new JFrame("Library System v0.2");
         try
